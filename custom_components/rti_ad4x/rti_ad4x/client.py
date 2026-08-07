@@ -28,6 +28,8 @@ _LOGGER = logging.getLogger(__name__)
 CONNECT_TIMEOUT = 3.0
 COMMAND_TIMEOUT = 3.0
 _MAX_NOISE_LINES = 5
+_QUERY_RETRIES = 2
+_RETRY_SLEEP = 0.3
 
 
 class RtiAd4xError(Exception):
@@ -141,6 +143,26 @@ class RtiAd4xClient:
         await self._send(cmd_all_off())
 
     async def async_query_zone(self, zone: int) -> ZoneState:
+        """Query one zone, retrying once (with reconnect) on failure.
+
+        A single flaky exchange right after a (re)connect — observed live,
+        typically the first query after an HA restart — would otherwise
+        bubble up as UpdateFailed and flash *all* zones' entities
+        unavailable at once, even though only one zone's query actually
+        failed.
+        """
+        last_exc: RtiAd4xError | None = None
+        for attempt in range(_QUERY_RETRIES):
+            try:
+                return await self._query_zone_once(zone)
+            except RtiAd4xError as exc:
+                last_exc = exc
+                if attempt < _QUERY_RETRIES - 1:
+                    await asyncio.sleep(_RETRY_SLEEP)
+        assert last_exc is not None
+        raise last_exc
+
+    async def _query_zone_once(self, zone: int) -> ZoneState:
         async with self._lock:
             await self._send_raw(cmd_status_query(zone))
             status = await self._read_matching(parse_status, zone)
