@@ -1,6 +1,9 @@
 """Shared base entity for RTI AD-4x zone entities."""
 from __future__ import annotations
 
+import dataclasses
+from typing import Any
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -44,3 +47,18 @@ class RtiAd4xZoneEntity(CoordinatorEntity[RtiAd4xCoordinator]):
     @property
     def _zone_state(self) -> ZoneState | None:
         return self.coordinator.data.get(self._zone) if self.coordinator.data else None
+
+    def _optimistic_update(self, **changes: Any) -> None:
+        """Reflect a just-sent command in HA immediately instead of waiting
+        on a full 4-zone/8-round-trip coordinator poll (async_request_refresh
+        made every write feel like it "froze" for a few seconds). The next
+        scheduled poll (DEFAULT_POLL_INTERVAL) reconciles this against the
+        amp's actual state, correcting any rounding/clamping drift (e.g.
+        odd bass/treble values, out-of-range volume).
+        """
+        state = self._zone_state
+        if state is None:
+            return
+        data = dict(self.coordinator.data)
+        data[self._zone] = dataclasses.replace(state, **changes)
+        self.coordinator.async_set_updated_data(data)

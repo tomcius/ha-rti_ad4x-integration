@@ -46,4 +46,4 @@ class RtiAd4xSourceSelect(RtiAd4xZoneEntity, SelectEntity):
         if source is None:
             return
         await self.coordinator.client.async_set_source(self._zone, source)
-        await self.coordinator.async_request_refresh()
+        self._optimistic_update(source=source)

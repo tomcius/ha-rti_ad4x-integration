@@ -63,7 +63,7 @@ class RtiAd4xVolumeNumber(RtiAd4xZoneEntity, NumberEntity):
     async def async_set_native_value(self, value: float) -> None:
         raw = VOL_MAX - int(value)
         await self.coordinator.client.async_set_volume(self._zone, raw)
-        await self.coordinator.async_request_refresh()
+        self._optimistic_update(volume=raw)
 
 
 class RtiAd4xBassNumber(RtiAd4xZoneEntity, NumberEntity):
@@ -84,7 +84,7 @@ class RtiAd4xBassNumber(RtiAd4xZoneEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.client.async_set_bass(self._zone, int(value))
-        await self.coordinator.async_request_refresh()
+        self._optimistic_update(bass=int(value))
 
 
 class RtiAd4xTrebleNumber(RtiAd4xZoneEntity, NumberEntity):
@@ -105,4 +105,4 @@ class RtiAd4xTrebleNumber(RtiAd4xZoneEntity, NumberEntity):
 
     async def async_set_native_value(self, value: float) -> None:
         await self.coordinator.client.async_set_treble(self._zone, int(value))
-        await self.coordinator.async_request_refresh()
+        self._optimistic_update(treble=int(value))

@@ -40,11 +40,11 @@ class RtiAd4xPowerSwitch(RtiAd4xZoneEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self.coordinator.client.async_set_power(self._zone, True)
-        await self.coordinator.async_request_refresh()
+        self._optimistic_update(power=True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.client.async_set_power(self._zone, False)
-        await self.coordinator.async_request_refresh()
+        self._optimistic_update(power=False)
 
 
 class RtiAd4xMuteSwitch(RtiAd4xZoneEntity, SwitchEntity):
@@ -60,8 +60,8 @@ class RtiAd4xMuteSwitch(RtiAd4xZoneEntity, SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         await self.coordinator.client.async_set_mute(self._zone, True)
-        await self.coordinator.async_request_refresh()
+        self._optimistic_update(mute=True)
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.client.async_set_mute(self._zone, False)
-        await self.coordinator.async_request_refresh()
+        self._optimistic_update(mute=False)
