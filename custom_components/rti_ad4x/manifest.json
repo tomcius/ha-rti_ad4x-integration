@@ -1,0 +1,11 @@
+{
+  "domain": "rti_ad4x",
+  "name": "RTI AD-4x",
+  "codeowners": ["@tomcius"],
+  "config_flow": true,
+  "documentation": "https://github.com/tomcius/ha-rti_ad4x-integration",
+  "issue_tracker": "https://github.com/tomcius/ha-rti_ad4x-integration/issues",
+  "iot_class": "local_polling",
+  "requirements": [],
+  "version": "0.1.0"
+}
